@@ -1,6 +1,5 @@
 from restless.dj import DjangoResource
 from restless.preparers import FieldsPreparer
-
 from tasks.models import Task
 
 
