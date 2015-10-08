@@ -3,6 +3,7 @@ from restless.preparers import FieldsPreparer
 from tasks.models import Task
 
 
+
 class TaskResource(DjangoResource):
 
 	preparer = FieldsPreparer(fields={
