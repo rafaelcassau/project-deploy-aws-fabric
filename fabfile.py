@@ -1,4 +1,5 @@
-from fabric.api import local
+from fabric.api import local, cd
+import os
 
 def run():
 	local("./manage.py runserver 8000")
@@ -10,6 +11,11 @@ def migrate():
 	local("./manage.py makemigrations")
 	local("./manage.py migrate")
 
-def prepare_deploy():
-	local("git add . && git commit")
-	local("git push")
+def push(branch='master', message='add new features'):
+	local_path = os.getcwd()
+	with cd(local_path):
+		local('git add .')
+		local('git commit -m "{}"'.format(message))
+		local("git push origin {} ".format())
+
+	
