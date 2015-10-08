@@ -1,4 +1,4 @@
-from fabric.api import local, cd
+from fabric.api import local, cd, run
 import os
 
 
@@ -19,4 +19,8 @@ def push(branch='master', message='add new features'):
 		local('git commit -m "{}"'.format(message))
 		local("git push origin {} ".format(branch))
 
-	
+def prepare_deploy():
+	local_path = '/opt/task_admin/'
+	with cd(local_path):
+		run('git checkout master')
+		run('git pull origin master')
