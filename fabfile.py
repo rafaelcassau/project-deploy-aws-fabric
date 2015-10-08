@@ -16,6 +16,6 @@ def push(branch='master', message='add new features'):
 	with cd(local_path):
 		local('git add .')
 		local('git commit -m "{}"'.format(message))
-		local("git push origin {} ".format())
+		local("git push origin {} ".format(master))
 
 	
