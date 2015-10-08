@@ -1,8 +1,11 @@
-from fabric.api import local, cd, run
+from fabric.api import local, cd, run, env, sudo
 import os
 
+env.hosts = ['ec2-52-89-60-124.us-west-2.compute.amazonaws.com']
+env.user = 'ubuntu'
+env.key_filename = '~/.ssh/rafaelcassau.pem'
 
-def run():
+def runserver():
 	local("./manage.py runserver 8000")
 
 def execperm():
@@ -20,7 +23,7 @@ def push(branch='master', message='add new features'):
 		local("git push origin {} ".format(branch))
 
 def prepare_deploy():
-	local_path = '/opt/task_admin/'
-	with cd(local_path):
-		run('git checkout master')
-		run('git pull origin master')
+	remote_path = '/opt/task_admin/'
+	with cd(remote_path):
+		sudo('git checkout master')
+		sudo('git pull origin master')
