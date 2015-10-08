@@ -1,6 +1,7 @@
 from fabric.api import local, cd
 import os
 
+
 def run():
 	local("./manage.py runserver 8000")
 
