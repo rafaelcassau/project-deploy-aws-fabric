@@ -15,6 +15,7 @@ def migrate():
 	local("./manage.py makemigrations")
 	local("./manage.py migrate")
 
+
 def push(branch='master', message='add new features'):
 	local_path = os.getcwd()
 	with cd(local_path):
