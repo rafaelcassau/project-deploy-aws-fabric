@@ -3,3 +3,4 @@ Fabric==1.10.2
 restless==2.0.1
 MySQL-python==1.2.5
 ipython
+djangoexentials
