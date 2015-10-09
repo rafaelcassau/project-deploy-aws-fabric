@@ -30,7 +30,7 @@ def prepare_deploy():
 
 def deploy():
 	remote_path = '/opt/task_admin/'
-	run('workon task-admin')
+	sudo('workon task-admin')
 	with cd(remote_path):
 		run("python manage.py makemigrations")
 		run("python manage.py migrate")	
