@@ -27,3 +27,5 @@ def prepare_deploy():
 	with cd(remote_path):
 		sudo('git checkout master')
 		sudo('git pull origin master')
+		sudo("./manage.py makemigrations")
+		sudo("./manage.py migrate")
