@@ -27,3 +27,10 @@ def prepare_deploy():
 	with cd(remote_path):
 		sudo('git checkout master')
 		sudo('git pull origin master')
+
+def deploy():
+	remote_path = '/opt/task_admin/'
+	run('workon task-admin')
+	with cd(remote_path):
+		run("python manage.py makemigrations")
+		run("python manage.py migrate")	
