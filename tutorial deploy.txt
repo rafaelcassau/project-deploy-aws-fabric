@@ -1,0 +1,236 @@
+DEPENDENCIAS
+	
+	SISTEMA OPERACIONAL
+		-- python-pip                   [Gerenciador de pacotes python]
+		-- supervisor                   [Gerenciador dos serviços relacionados ao projeto]
+		-- nginx                        [Servidor de arquivos estaticos e proxy reverso]
+
+	PYTHON
+		-- virtualenv                   [Isola as dependencias do projeto]
+		-- virtualenvwrapper            [Adiciona funcionalidades uteis a virtualenv]
+		-- gunicorn                     [Servidor de aplicação WSGI]
+
+
+INSTALANDO AS DEPENDENCIAS DO SISTEMA OPERACIONAL
+
+	-- sudo apt-get install python-pip
+	-- sudo apt-get install supervisor
+	-- sudo apt-get install nginx
+
+
+INSTALANDO VIRTUALENV E VIRTUALENVWRAPPER
+
+	-- sudo install virtualenv
+	-- sudo install virtualenvwrapper
+
+
+CONFIGURANDO AS VARIAVEIS DE AMBIENTE VIRTUALENVWRAPPER
+
+	-- vim ~/.profile
+    -- export WORKON_HOME=$HOME/virtualenvs         [Diretorio onde ficarão todos os ambientes virtuais]
+	-- export PROJECT_HOME=$HOME/projects           [Diretorio onde ficarão todos os projetos]
+	-- source /usr/local/bin/virtualenvwrapper.sh   [.sh que contem os utilitarios virtualenvwrapper]
+	-- wq!											[Salva as alterações do arquivo]
+	-- source ~/.profile        					[Executa o reload e exporta as novas variaveis]
+
+
+CRIANDO A VIRTUALENV
+
+	-- mkvirtualenv <projeto>       [Cria e já ativa virtualenv]
+	-- workon <projeto>             [Ativa a virtualenv]
+	-- deactivate                   [Desativa a virtualenv]
+
+
+ESTRUTURA DOS PROJETOS E SEUS AMBIENTES VIRTUAIS EM PRODUÇÃO
+
+	-- /home/<usuario>/             
+	    -- virtualenvs/              [Root de todas as virtualenvs]
+	        -- <projeto>	         [Virtualenv do projeto]
+
+	-- /home/<usuario>/
+	    -- projects/                 [Root de todos os projetos]
+	    	<projeto>                [Diretorio com o mesmo nome do projeto porem um nivel acima contendo 
+	    							 as configurações do ambiente de produção]
+	        	-- nginx.conf            [Configuração do nginx especifica para o projeto]
+	        	-- supervisor.conf       [Configuração do supervisor especifica para o projeto]
+	        	-- start.sh              [Automação de start do gunicorn especifico para o projeto]
+	        	-- <projeto>/            [Projeto clonado do github]
+	        	-- logs/                 [Pasta para guardar os logs especificos do projeto]
+                	-- access.log        [Log de acesso do nginx especifico do projeto]
+                	-- error.log         [Log de erro do nginx especifico do projeto]
+                	-- gunicorn.log      [Log do gunicorn especifico do projeto]
+                	-- supervisor.log    [Log do supervisor especifico do projeto]
+
+
+CRIANDO A ESTRUTURA DE TODOS OS PROJETOS
+
+	-- cd /home/<usuario>/
+		-- mkdir projects
+
+CRIANDO A ESTRUTURA ESPECIFICA DE CADA PROJETO
+
+	-- cd ~/projects
+		-- mkdir <projeto>
+		-- git clone https://url_do_projeto_github.git
+		-- touch nginx.conf
+		-- touch supervisor.conf
+		-- touch start.sh
+		-- mkdir logs
+			-- touch access.log
+			-- touch error.log
+			-- toucj gunicorn.log
+			-- supervisor.log
+
+
+INSTALANDO OS REQUIREMENTS DO PROJETO
+
+	-- workon <virtualenv_projeto>
+	-- cd ~/projects/<projeto>/
+	    -- pip install -r requirements.txt
+	    -- pip install -r requirements_prod.txt
+
+
+CONFIGURANDO O ARQUIVO "start.sh"
+
+	-- cd ~/projects/<projeto>/
+	    -- chmod +x start.sh
+	    -- vim start.sh
+
+	    	#!/bin/bash
+			
+			# Diretorio e arquivo de log
+			set -e
+			LOGFILE=/home/<usuario>/projects/<projeto>/logs/gunicorn.log
+			LOGDIR=$(dirname $LOGFILE)
+			
+			# Numero de processos simultaneos, modifique de acordo com o seu processador
+			NUM_WORKERS=3
+			
+			# Usuario/Grupo que vai rodar o gunicorn
+			USER=<usuario>
+			#GROUP=<grupo>
+			
+			# Endereco local que o gunicorn ira rodar
+			ADDRESS=127.0.0.1:<porta>
+			
+			# Ativando o ambiente virtual e executando o gunicorn para este projeto
+			source /home/<usuario>/virtualenvs/<virtualenv_projeto>/bin/activate
+			cd /home/<usuario>/projects/<projeto>/<projeto_clonado_github>/
+			test -d $LOGDIR || mkdir -p $LOGDIR
+			exec gunicorn -w $NUM_WORKERS --bind=$ADDRESS --user=$USER --log-level=debug --log-file=$LOGFILE 2>>$LOGFILE <package_projeto_contem_wsgi>.wsgi:application
+
+		-- wq!
+
+
+CONFIGURANDO O ARQUIVO "/etc/nginx/nginx.conf"
+
+	-- sudo vim /etc/nginx/nginx.conf
+
+		CASO O DNS DO SEU PROJETO CONTENHA MUITOS CARACTERES UTILIZE A SEGUINTE VARIAVEL
+
+		-- server_names_hash_bucket_size 128
+
+		ADICIONE AS LINHAS ABAIXO ANTES DE FECHAR O BLOCO HTTP
+
+		-- # Adiciona a estrutura dos projetos ao path de configuração do nginx
+		-- include /home/<usuario>/<projects>/*/nginx.conf;
+
+	-- wq!
+
+
+CONFIGURANDO O ARQUIVO "/home/<usuario>/projects/<projeto>/nginx.conf"
+
+	-- cd /home/<usuario>/projects/<projeto>/
+		-- vim nginx.conf
+
+			upstream <projeto.com.br> {
+			    server 127.0.0.1:<porta>;
+			}
+
+			server {
+			    listen 80;
+			    server_name <projeto.com.br>;
+			    client_max_body_size 50M;
+
+			    access_log /home/<usuario>/projects/<projeto>/logs/access.log;
+			    error_log /home/<usuario>/projects/<projeto>/logs/error.log;
+
+			    location /static/ {
+			        alias /home/<usuario>/projects/<projeto>/static/;
+			    }
+			    location /media/ {
+			        alias /home/<usuario>/projects/<projeto>/media/;
+			    }
+			    location / {
+			        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+			        proxy_set_header Host $http_host;
+			        proxy_redirect off;
+
+			        if (!-f $request_filename) {
+			            proxy_pass http://<projeto.com.br>;
+			            break;
+			        }
+			    }
+			}
+
+		-- wq!
+
+
+CONFIGURANDO O ARQUIVO "/etc/supervisor/supervisord.conf"
+
+	-- sudo vim /etc/supervisor/supervisord.conf
+
+		ADICIONE AS LINHAS ABAIXO NO FIM DO ARQUIVO
+
+		--  Adiciona a estrutura dos projetos ao path de configuração do supervisor
+		-- files = /home/<usuario>/projects/*/supervisor.conf
+
+	wq!
+
+
+CONFIGURANDO O ARQUIVO "/home/<usuario>/projects/<projeto>/supervisor.conf"
+
+	-- cd /home/<usuario>/projects/<projeto>/
+	-- vim supervisor.conf
+
+		[program:<projeto>]
+		command=/home/<usuario>/projects/<projeto>/start.sh
+		user=<usuario>
+		stdout_logfile=/home/<usuario>/projects/<projeto>/logs/supervisor.log
+		redirect_stderr=true
+		autostart=true
+		autorestart=true
+
+	-- wq!
+
+
+REINICIANDO NGINX
+
+	-- sudo service nginx stop
+	-- sudo service nginx status
+	-- sudo service nginx start
+
+	OU
+
+	-- sudo service nginx restart
+
+
+INICIANDO O SUPERVISOR
+
+	-- sudo /etc/init.d/supervisor start <projeto>
+
+
+PROBLEMAS QUE PASSEI
+
+Cabeçalho "#!/bin/bash" obrigatorio "start.sh"
+Permissão de execução "chmod +x start.sh"
+Todos os paths devem estar com o caminho absoluto e não com o caminho relativo
+Comentario com ";" e nao "#"" no "/etc/supervisor/supervisord.conf"
+Descomentar a variavel "server_names_hash_bucket_size=128" devido ao DNS com muitos caracteres no 
+"/projects/<projeto>/nginx.conf"
+Configuração de politica de segurança no painel administrativo Amazon EC2
+
+
+
+
+

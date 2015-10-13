@@ -37,5 +37,3 @@ def deploy():
 	do ".bashrc"
 	"""
 	run('workon task_admin')
-	
-	
