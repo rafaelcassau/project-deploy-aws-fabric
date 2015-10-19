@@ -12,7 +12,7 @@ def runserver():
 
 
 def execperm():
-    local("sudo chmod +x manage.py")
+    local('sudo chmod +x manage.py')
 
 
 def migrate():
@@ -37,16 +37,16 @@ def deploy(branch='master'):
         no arquivo ".bashrc" pois a sessão ssh carrega as variaveis de contexto do ".profile" e não
         do ".bashrc"
     """
-    run('workon task_admin')
-
-    remote_path = '~/projects/task_admin/task_admin'
+    remote_path = '~/projects/task_admin/task_admin/'
 
     with cd(remote_path):
         run('git checkout {}'.format(branch))
         run('git pull origin '.format(branch))
-        run("python manage.py migrate")
+        run('workon task_admin')
+        run('python manage.py migrate')
 
-    sudo('/etc/init.d/supervisor restart')
+    sudo('/etc/init.d/supervisor stop')
+    sudo('/etc/init.d/supervisor start task_admin')
     sudo('service nginx restart')
 
 
