@@ -21,7 +21,7 @@ def migrate():
     local("./manage.py migrate")
 
 
-def push(branch='master', message='Push features'):
+def push(message='Push features', branch='master'):
 
     local_path = '~/projects/task_admin'
 
