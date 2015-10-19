@@ -1,6 +1,7 @@
 # encoding: utf-8
 
 from fabric.api import local, cd, run, env, sudo
+from fabric.context_managers import prefix
 
 env.hosts = ['ec2-52-89-60-124.us-west-2.compute.amazonaws.com']
 env.user = 'ubuntu'
@@ -39,11 +40,11 @@ def deploy(branch='master'):
     """
     remote_path = '~/projects/task_admin/task_admin/'
 
-    with cd(remote_path):
+    with cd(remote_path), prefix('workon task_admin'):
         run('git checkout {}'.format(branch))
         run('git pull origin '.format(branch))
-        run('workon task_admin')
         run('python manage.py migrate')
+        run('python manage.py collectstatic')
 
     sudo('/etc/init.d/supervisor stop')
     sudo('/etc/init.d/supervisor start task_admin')
