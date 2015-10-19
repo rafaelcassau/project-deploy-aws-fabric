@@ -84,8 +84,6 @@ USE_TZ = True
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/R1.7/howto/static-files/
-
-# Get the parent directory BASE_DIR
-STATIC_ROOT = os.path.abspath(os.path.join(BASE_DIR, os.pardir, 'static/'))
-
 STATIC_URL = '/static/'
+
+STATIC_ROOT = os.path.abspath(os.path.join(BASE_DIR, os.pardir, os.pardir, 'static'))
