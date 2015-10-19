@@ -4,6 +4,6 @@ from tasks.api import TaskResource
 
 
 urlpatterns = patterns('',
-    #url(r'^admin/', include(admin.site.urls)),
-    url(r'api/tasks/', include(TaskResource.urls()))
+    url(r'^admin/', include(admin.site.urls)),
+    url(r'^api/tasks/', include(TaskResource.urls()))
 )

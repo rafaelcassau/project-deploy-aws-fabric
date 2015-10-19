@@ -1,6 +1,6 @@
 # encoding: utf-8
 
-from fabric.api import local, cd, run, env
+from fabric.api import local, cd, run, env, sudo
 
 env.hosts = ['ec2-52-89-60-124.us-west-2.compute.amazonaws.com']
 env.user = 'ubuntu'
@@ -20,17 +20,35 @@ def migrate():
     local("./manage.py migrate")
 
 
-def prepare_deploy():
-    remote_path = '~/projects/task_admin/project/task_admin'
-    with cd(remote_path):
-        run('git checkout master')
-        run('git pull origin master')
+def push(branch='master', message='Push features'):
+
+    local_path = '~/projects/task_admin'
+
+    with cd(local_path):
+        local('git checkout {}'.format(branch))
+        local('git add .')
+        local('git commit -m "{}"'.format(message))
+        local('git push origin {}'.format(branch))
 
 
-def deploy():
+def deploy(branch='master'):
     """
         É necessario adicionar as configurações da virtualenvwrapper no arquivo ".profile" e não
         no arquivo ".bashrc" pois a sessão ssh carrega as variaveis de contexto do ".profile" e não
         do ".bashrc"
     """
     run('workon task_admin')
+
+    remote_path = '~/projects/task_admin/task_admin'
+
+    with cd(remote_path):
+        run('git checkout {}'.format(branch))
+        run('git pull origin '.format(branch))
+        run("python manage.py migrate")
+
+    sudo('/etc/init.d/supervisor restart')
+    sudo('service nginx restart')
+
+
+
+
