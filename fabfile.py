@@ -95,7 +95,7 @@ def deploy(branch='master'):
     with cd(env.remote_project_source_path), prefix('workon {}'.format(env.project_name)):
         run('git checkout {}'.format(branch))
         run('git pull origin '.format(branch))
-        run('pip install -r requirements_prod')
+        run('pip install -r requirements/prod.txt')
         run('python manage.py migrate')
         run('python manage.py collectstatic')
 
