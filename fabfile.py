@@ -20,6 +20,8 @@ env.remote_root_path = '~/projects/'
 env.remote_project_path = '~/projects/{}/'.format(env.project_name)
 env.remote_project_source_path = '~/projects/{}/{}/'.format(env.project_name, env.project_name)
 
+env.remote_virtualenv_path = '~/virtualenvs/'
+
 
 def push(message='Push features', branch='master'):
     with cd(env.local_path):
@@ -41,6 +43,17 @@ def bootstrap():
         A task será responsavel por criar a estrutura completa do projeto especifico
         dentro do diretório <projects> informado acima.
     """
+    create_project_structure()
+    make_start_sh_conf()
+    make_supervisor_conf()
+    make_nginx_conf()
+
+    clone()
+    create_venv()
+    deploy()
+
+
+def create_project_structure():
     with cd(env.remote_root_path):
         run('mkdir -p {}/logs'.format(env.project_name))
         run('touch {}/logs/supervisor.log'.format(env.project_name))
@@ -50,14 +63,27 @@ def bootstrap():
         run('mkdir -p {}/media'.format(env.project_name))
         run('mkdir -p {}/static'.format(env.project_name))
 
-        _make_start_sh_conf()
-        _make_supervisor_conf()
-        _make_nginx_conf()
+
+def create_venv():
+    with cd(env.remote_virtualenv_path):
+        run('mkvirtualenv {}'.format(env.project_name))
+
+    with cd(env.remote_project_source_path), prefix('workon {}'.format(env.project_name)):
+        run('pip install -r requirements/prod.txt')
 
 
 def clone():
     with cd(env.remote_project_path):
         run('git clone {}'.format(env.github_project_url))
+
+
+def kill_project():
+    run('sudo service nginx stop')
+    run('sudo service supervisor stop')
+    run('rmvirtualenv {}'.format(env.project_name))
+
+    with cd(env.remote_root_path):
+        run('rm -rf {}'.format(env.project_name))
 
 
 def deploy(branch='master'):
@@ -69,6 +95,7 @@ def deploy(branch='master'):
     with cd(env.remote_project_source_path), prefix('workon {}'.format(env.project_name)):
         run('git checkout {}'.format(branch))
         run('git pull origin '.format(branch))
+        run('pip install -r requirements_prod')
         run('python manage.py migrate')
         run('python manage.py collectstatic')
 
@@ -79,7 +106,7 @@ def deploy(branch='master'):
 # ******** BUILDING TEMPLATE METHODS ********
 
 
-def _make_start_sh_conf():
+def make_start_sh_conf():
 
     with open('start.sh', 'w') as start_sh:
 
@@ -100,7 +127,7 @@ def _make_start_sh_conf():
         run('chmod +x start.sh')
 
 
-def _make_supervisor_conf():
+def make_supervisor_conf():
 
     with open('supervisor.conf', 'w') as supervisor_conf:
 
@@ -116,7 +143,7 @@ def _make_supervisor_conf():
     local('rm supervisor.conf')
 
 
-def _make_nginx_conf():
+def make_nginx_conf():
 
     with open('nginx.conf', 'w') as nginx_conf:
 
