@@ -30,9 +30,18 @@ CONFIGURANDO AS VARIAVEIS DE AMBIENTE VIRTUALENVWRAPPER
     -- export WORKON_HOME=$HOME/virtualenvs         [Diretorio onde ficarão todos os ambientes virtuais]
 	-- export PROJECT_HOME=$HOME/projects           [Diretorio onde ficarão todos os projetos]
 	-- source /usr/local/bin/virtualenvwrapper.sh   [.sh que contem os utilitarios virtualenvwrapper]
+
 	-- wq!											[Salva as alterações do arquivo]
 	-- source ~/.profile        					[Executa o reload e exporta as novas variaveis]
 
+
+CONFIGURANDO A VARIAVEL DE AMBIENTE PARA O SETTINGS DE PRODUÇÃO
+
+	-- vim ~/.profile
+	-- export DJANGO_SETTINGS_MODULE=task_admin.settings.production
+
+	-- wq!											[Salva as alterações do arquivo]
+	-- source ~/.profile        					[Executa o reload e exporta as novas variaveis]
 
 CRIANDO A VIRTUALENV
 
@@ -229,7 +238,7 @@ Comentario com ";" e nao "#"" no "/etc/supervisor/supervisord.conf"
 Descomentar a variavel "server_names_hash_bucket_size=128" devido ao DNS com muitos caracteres no 
 "/projects/<projeto>/nginx.conf"
 Configuração de politica de segurança no painel administrativo Amazon EC2
-
+Adicionar a constante ALLOWED_HOSTS=['dns do projeto'] no SETTINGS de produção
 
 
 
