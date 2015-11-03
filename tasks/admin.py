@@ -19,13 +19,16 @@ class TaskAdmin(admin.ModelAdmin):
 	fieldsets = (
 		('Campos Obrigatórios', {
 			'description': 'Neste Fieldset contem somente os campos obrigatórios',
-			'fields': ('title', 'description', 'status'),
+			'fields': ('title', 'status', 'description'),
 		}),
 	)
 
 	list_display = ('title', 'description', 'status', 'posted_on',)
 	list_editable = ('status',)
+	readonly_fields = ('description',)
 	list_filter = ('title', 'status',)
+
+	search_fields = ('user__username',)
 
 	inlines = (TaskAdminInline,)
 
