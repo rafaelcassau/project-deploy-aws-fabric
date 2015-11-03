@@ -2,6 +2,8 @@ from base import *
 
 DEBUG = True
 
+USE_TZ = False
+
 ALLOWED_HOSTS = ['*']
 
 INSTALLED_APPS += ('debug_toolbar',)
